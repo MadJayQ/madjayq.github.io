@@ -1,0 +1,102 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <!--JQuery CDN-->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+        <!--https://bgrins.github.io/spectrum/ Spectrum Color Picker-->
+        <script src='js/lib/spectrum.js'></script>
+        <link rel='stylesheet' href='css/spectrum.css' />
+
+        <!--My Code-->
+        <link rel="stylesheet" type="text/css" href="css/style.css">
+        <script src="js/math.js"></script>
+        <script src="js/globalvars.js"></script>
+
+    </head>
+    <body>
+        <div id="toolContainer">
+            <!---
+                Stuff and things here
+            -->
+            <h2>Tools</h2>
+            Color: <input type='text' id='colorPicker'><br>
+            Tool: <select id='toolPicker'>
+                    <option value="freehand">Free Hand</option>
+                    <option value="line">Line</option>
+                    <option value="rectangle">Rectangle</option>
+                    <option value="triangle">Triangle</option>
+                    <option value="circle">Circle</option>
+                    <option value="nlinegon">N-Line Polygon</option>
+            </select>
+            <br>
+            Filled
+            <br>
+            <label class="switch" id='filledToggle'>
+                <input type="checkbox">
+                <span class="slider"></span>
+            </label>  
+            <br>
+            <h2>Instructions</h2>
+            Ctrl + Z - Undo<br>
+            Left Click - Begin Stroke<br>
+            Release to End Stroke<br><br>
+            <h3>N-Polygon</h3>
+            Hit enter to finish 
+            <h3>Triangle</h3>
+            First click will be line, left click again to stroke out triangle
+            <br>
+            <h3>Known Caveats</h3>
+            N-Line Polygon Preview doesn't work properly<br>
+            First click kinda glitches out sometimes<br>
+            Color picker doesn't affect free hand drawing<br>
+            Free hand performance loss on large polygons<br>
+
+        </div>
+        <div id="canvasContainer">
+            <canvas id="paintCanvas">
+                <h1 style="color: red">YOUR BROWSER DOES NOT SUPPORT HTML5 CANVAS!</h1>
+            </canvas>
+        </div>
+        <script language="JavaScript">
+            var debug = null;
+            var onColorChange = [];
+            var onBrushChange = (val) => { console.log("NEW BRUSH: " + val);}
+            var onFilledChange = (val) => { console.log("NEW FILLED: " + val);}
+            $('#colorPicker').spectrum({
+                color: "#f00",
+                change: function(color) {
+                    drawColor = color;
+                    onColorChange.forEach((value) => {value(color);});
+                }
+            });
+            $('#toolPicker')[0].onchange = (ev) => {
+                onBrushChange($('#toolPicker')[0].selectedIndex);
+            };
+            $('#filledToggle')[0].onchange = (ev) => {
+                onFilledChange($('#filledToggle')[0].children[0].checked);
+            }
+            $(document).ready(() => {
+                if(window.location.protocol == 'file:') {
+                    alert("You HAVE to run this app from a web server to get it to run due to the AJAX calls, XAMPP or Node will work");
+                }
+                var mainScript = "js/app.js";
+                $.ajaxSetup({
+                    cache: true,
+                    async: false
+                });
+                $.getScript(mainScript, (data, status, jqxhr) => {
+                    console.log("Loaded: " + mainScript + " status: (" + jqxhr.status + ")" + status);
+                });
+                var app = new App();
+                
+                app.glInitCallback = () => {
+                    console.log("WebGL has been set up and shaders have been loaded!");
+                };
+                debug = app;
+                app.onPageLoad();
+                app.main();
+            });
+        </script>
+    </body>
+</html>
